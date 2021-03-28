@@ -8,9 +8,9 @@ import numpy as np
 
 # %% Part 1
 
-# Load in the epoch data
-data_file_path = '.'
-emg_epoch = np.load(data_file_path + 'Data_Values_epochs.npy')
+# Load in the epoch data //here lab 3 data is placed in lab4 folder for ease of access
+data_file_path = 'C:/Users/Artur Smiechowski/Documents/BME227_Code/Lab_4_BME_227/Data_Values_epochs.npy'
+emg_epoch = np.load(data_file_path)
 
 emg_epoch_var = np.transpose(np.var(emg_epoch, 0)) # 2 dimensional [channel, epoch]
 # Is squeeze to catch incomplete epochs?
@@ -21,7 +21,8 @@ emg_epoch_var = np.transpose(np.var(emg_epoch, 0)) # 2 dimensional [channel, epo
 left_cycle = np.array([False,False,False,False,False,True,True,True,True,True,False,False,False,False,False,True,True,True,True,True,])
 right_cycle = np.array([False,False,False,False,False,False,False,False,False,False,True,True,True,True,True,True,True,True,True,True,])
 
-# Use np.tile to repeat the action cycles into expected value arrays
-is_true_left = np.tile(left_cycle, np.shape(emg_epoch)[2]/20) # np.shape(emg_epoch)[2]/20 is numder of "Action Cycles" in a sample set
-is_true_right = np.tile(right_cycle, np.shape(emg_epoch)[2]/20)
+# Use np.tile to repeat the action cycles into expected value arrays (+1 to account for non-even division, then indexed into final array to remove extra values)
+is_true_left = np.array(np.tile(left_cycle, int(np.shape(emg_epoch)[2]/20)+1)[:np.shape(emg_epoch)[2]]) # np.shape(emg_epoch)[2]/20 is numder of "Action Cycles" in a sample set
+is_true_right = np.array(np.tile(right_cycle, int(np.shape(emg_epoch)[2]/20)+1)[:np.shape(emg_epoch)[2]]) 
 
+# %% Part 2
