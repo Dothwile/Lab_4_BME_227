@@ -5,6 +5,7 @@ Created by Artur Smiechowski 3/22/21
 
 # %% Imports
 import numpy as np
+from matplotlib import pyplot as plt
 
 # %% Part 1
 
@@ -26,3 +27,11 @@ is_true_left = np.array(np.tile(left_cycle, int(np.shape(emg_epoch)[2]/20)+1)[:n
 is_true_right = np.array(np.tile(right_cycle, int(np.shape(emg_epoch)[2]/20)+1)[:np.shape(emg_epoch)[2]]) 
 
 # %% Part 2
+
+plt.figure()
+
+plt.xlabel("Variance on Channel 0 (V^2)")
+plt.ylabel("Number of Trials")
+plt.title("HMI Histogram for Left Fist Squeeze")
+plt.hist(emg_epoch_var[is_true_left,0],bins=8, alpha=0.5) # Multidimensional indexing is seemingly wonky? [x][y] does not work intermittently
+plt.hist(emg_epoch_var[~is_true_left,0],bins=8, alpha=0.5)
