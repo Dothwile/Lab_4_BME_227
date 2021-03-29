@@ -90,3 +90,79 @@ This could be due to different placement on each respective arm, slight differen
 
 # %% Part 3
 
+# Left Hand ---------------------------------------------------------------------------------------------
+
+# Initialize true and false positives/negatives
+true_positive_left = 0
+false_positive_left = 0
+true_negative_left = 0
+false_negative_left = 0
+
+# Loop through the data and sum true/false positive/negative
+for epoch_n in range(len(emg_epoch_var[:])):
+    # Check if predicted true matches expected true
+    if is_predicted_left[epoch_n]:
+        if is_predicted_left[epoch_n] == is_true_left[epoch_n]:
+            true_positive_left = true_positive_left + 1
+        else:
+            false_positive_left = false_positive_left + 1
+    # Check if predicted false matches expected negative
+    else:
+        if is_predicted_left[epoch_n] == is_true_left[epoch_n]:
+            true_negative_left = true_negative_left + 1
+        else:
+            false_negative_left = false_negative_left + 1
+            
+# Calculate accuracy of channel
+accuracy_left = (true_positive_left + true_negative_left) / len(emg_epoch_var[:])
+
+# Sensitivty = True Pos / (True Pos + False Neg)
+sensitivity_left = true_positive_left/(true_positive_left+false_negative_left)
+
+# Specificity = True Neg / (True Neg + False Pos)
+specificity_left = true_negative_left/(true_negative_left+false_positive_left)
+
+# Information transfer rate per second
+ITRs_left = 5*(np.log2(2)+accuracy_left*np.log2(accuracy_left)+(1-accuracy_left)*np.log2((1-accuracy_left)/(2-1))) # Find ITR per trial, ITRs is that *5 since 5 epochs per second
+
+# Right Hand ---------------------------------------------------------------------------------------------
+
+# Initialize true and false positives/negatives
+true_positive_right = 0
+false_positive_right = 0
+true_negative_right = 0
+false_negative_right = 0
+
+# Loop through the data and sum true/false positive/negative
+for epoch_n in range(len(emg_epoch_var[:])):
+    # Check if predicted true matches expected true
+    if is_predicted_right[epoch_n]:
+        if is_predicted_right[epoch_n] == is_true_right[epoch_n]:
+            true_positive_right = true_positive_right + 1
+        else:
+            false_positive_right = false_positive_right + 1
+    # Check if predicted false matches expected negative
+    else:
+        if is_predicted_right[epoch_n] == is_true_right[epoch_n]:
+            true_negative_right = true_negative_right + 1
+        else:
+            false_negative_right = false_negative_right + 1
+            
+# Calculate accuracy of channel
+accuracy_right = (true_positive_right + true_negative_right) / len(emg_epoch_var[:])
+
+# Sensitivty = True Pos / (True Pos + False Neg)
+sensitivity_right = true_positive_right/(true_positive_right+false_negative_right)
+
+# Specificity = True Neg / (True Neg + False Pos)
+specificity_right = true_negative_right/(true_negative_right+false_positive_right)
+
+# Information transfer rate per second
+ITRs_right = 5*(np.log2(2)+accuracy_right*np.log2(accuracy_right)+(1-accuracy_right)*np.log2((1-accuracy_right)/(2-1))) # Find ITR per trial, ITRs is that *5 since 5 epochs per second
+
+# %% Part 4
+
+# Create the new choice arrays, intially will be copies of other choice arrays but will update
+is_predicted_4_left = is_predicted_left
+is_predicted_4_right = is_predicted_right
+is_predicted_4_click = is_predicted_left
