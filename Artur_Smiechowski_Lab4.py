@@ -1,12 +1,19 @@
 '''
 Lab_4_Main
 Created by Artur Smiechowski 3/22/21
+A program that
+    Loads up epoched emg data and compares it to expected "true" data
+    Creates a criterion point for the left and right channels each to predict an action from the data
+    Graphs the true vs not true predictions of the data for both channels
+    Calculates a number of parameters for the data set (ITR, accuracy, etc)
+    Reclassifies 2 channel 2 action sets into 4 actions
+    Plots the total confusion matrix for this 4 action array
+    Calculates the total accuracy and ITRs for the 4 action array
 '''
 
 # %% Imports
 import numpy as np
 from matplotlib import pyplot as plt
-import pyautogui as pyg
 
 # %% Part 1
 
@@ -246,3 +253,27 @@ confusion_matrix[1,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)
 confusion_matrix[2,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &(is_predicted_4_click==True))
 confusion_matrix[3,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &((is_predicted_4_click==False)&(is_predicted_4_left==False)&(is_predicted_4_right==False)))
 
+# Prepare the figure to plot the confusion matrix
+plt.clf()
+
+# Figure labels
+plt.title("HMI Confusion Matrix")
+plt.ylabel("Predicted Action")
+plt.xlabel("Actual Acion")
+# Action labels
+plt.xticks([0,1,2,3],actions)
+plt.yticks([3,2,1,0],actions)
+
+# Plot the matrix
+plt.pcolor(np.flip(confusion_matrix,0)) # Flipped vertically to match stated oreinatation/variable explorer orientation
+
+# Add a color bar
+plt.colorbar(label="Number of Trials")
+
+# Save the confusion matrix
+plt.savefig("C:/Users/Artur Smiechowski/Documents/BME227_Code/Lab_4_BME_227/HMI_Confusion_Matrix.png")
+
+# Calculate Total Accuracy
+accuracy_total = np.sum(confusion_matrix[0,0]+confusion_matrix[1,1]+confusion_matrix[2,2]+confusion_matrix[3,3])/np.sum(confusion_matrix[:,:])
+# Calculate Information Transfer Rate Total
+ITRs_total = 5*np.log2(4)+accuracy_total*np.log2(accuracy_total)+(1-accuracy_total)*np.log2((1-accuracy_total)/(4-1)) # *5 since 5 epochs per second
