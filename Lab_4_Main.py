@@ -6,6 +6,7 @@ Created by Artur Smiechowski 3/22/21
 # %% Imports
 import numpy as np
 from matplotlib import pyplot as plt
+import pyautogui as pyg
 
 # %% Part 1
 
@@ -42,7 +43,7 @@ plt.ylabel("Number of Trials")
 plt.title("HMI Histogram for Left Fist Squeeze")
 
 # Create a Criterion point to divide data classification
-criterion_left = 0.003 # Even after several new trials data improved but was not ultimately good (my arms really hurt from changing pad locations several times)
+criterion_left = 0.0025 # Even after several new trials data improved but was not ultimately good (my arms really hurt from changing pad locations several times)
 
 # Plot variances during expected true vs expected false epochs
 plt.hist(emg_epoch_var[is_true_left,0],bins=8, alpha=0.5, label="True Left") # Multidimensional indexing is seemingly wonky? [x][y] does not work intermittently
@@ -162,7 +163,86 @@ ITRs_right = 5*(np.log2(2)+accuracy_right*np.log2(accuracy_right)+(1-accuracy_ri
 
 # %% Part 4
 
-# Create the new choice arrays, intially will be copies of other choice arrays but will update
-is_predicted_4_left = is_predicted_left
-is_predicted_4_right = is_predicted_right
-is_predicted_4_click = is_predicted_left
+# Create the new prediction arrays, intially will be copies of other choice arrays but will update
+# This implies using the same criterions as before, could implement different ones by using same process as before with diff number
+is_predicted_4_left = np.copy(is_predicted_left) # TIL Python passes by reference, just = wont copy, just gives another name
+is_predicted_4_right = np.copy(is_predicted_right)
+is_predicted_4_click = np.copy(is_predicted_left)
+
+# Update the prediction arrays
+for epoch_n in range(len(is_predicted_4_left)): # I should standardize what values I reference for similar length applications, is there a best practice for this class?
+    # Piggyback off the loop to update 4_click
+    is_predicted_4_click[epoch_n] = False
+    
+    if is_predicted_4_left[epoch_n]: # Check if left is high
+        if is_predicted_4_right[epoch_n]: # If Right also high Click
+            # Update the truth arrays
+            is_predicted_4_click[epoch_n] = True
+            is_predicted_4_left[epoch_n] = False
+            is_predicted_4_right[epoch_n] = False
+             
+'''     
+# Note I started writing the code before finishing reading the section
+# I thought we where actually implementing an HMI
+# These sections of the if/else are not necessary as the array is already correct at epoch_n to get here
+# You only actually need the 2 checks and one update set to properly create 4 options
+# Nvm you could just use an and
+# Leaving this in comment to help clarify above
+# There is a time for refactoring but I have an exam to study for
+   
+   else: # Move left
+            pass      
+    else: # When left is low
+        if is_predicted_4_right[epoch_n]: # Move right
+            pass      
+        else: # Rest
+            pass
+'''
+
+# Create new truth arrays
+is_true_4_left = np.copy(is_true_left)
+is_true_4_right = np.copy(is_true_right)
+is_true_4_click = np.copy(is_true_left)
+
+# Update the truth arrays, similar to prediction
+for epoch_n in range(len(is_true_4_left)): # I should standardize what values I reference for similar length applications, is there a best practice for this class?
+    # Piggyback off the loop to update 4_click
+    is_true_4_click[epoch_n] = False
+    
+    if is_true_4_left[epoch_n]: # Check if left is high
+        if is_true_4_right[epoch_n]: # If Right also high Click
+            # Update the truth arrays
+            is_true_4_click[epoch_n] = True
+            is_true_4_left[epoch_n] = False
+            is_true_4_right[epoch_n] = False
+
+
+# Create an action list
+actions = ['left','right','click','rest']
+
+# Create a 2D confusion matrix (left,right,click,rest) in that order both dimensions
+# Rows are predicted, columns are actual
+confusion_matrix = np.zeros((4,4))
+
+# Update the array with the true vs predicted actions; Done column-wise sweep
+# True Left
+confusion_matrix[0,0] = np.sum((is_true_4_left==True)&(is_predicted_4_left==True)) # Don't think ==True is necessary of efficient since the arrays are already Bools(~ or not to negate), but will keep for clarity
+confusion_matrix[1,0] = np.sum((is_true_4_left==True)&(is_predicted_4_right==True))
+confusion_matrix[2,0] = np.sum((is_true_4_left==True)&(is_predicted_4_click==True))
+confusion_matrix[3,0] = np.sum((is_true_4_left==True)&((is_predicted_4_click==False)&(is_predicted_4_left==False)&(is_predicted_4_right==False))) # The long triple check since when 4_click is set it falisifes left/right, could get clash
+# True Right
+confusion_matrix[0,1] = np.sum((is_true_4_right==True)&(is_predicted_4_left==True))
+confusion_matrix[1,1] = np.sum((is_true_4_right==True)&(is_predicted_4_right==True))
+confusion_matrix[2,1] = np.sum((is_true_4_right==True)&(is_predicted_4_click==True))
+confusion_matrix[3,1] = np.sum((is_true_4_right==True)&((is_predicted_4_click==False)&(is_predicted_4_left==False)&(is_predicted_4_right==False)))
+# True Click
+confusion_matrix[0,2] = np.sum((is_true_4_click==True)&(is_predicted_4_left==True))
+confusion_matrix[1,2] = np.sum((is_true_4_click==True)&(is_predicted_4_right==True))
+confusion_matrix[2,2] = np.sum((is_true_4_click==True)&(is_predicted_4_click==True))
+confusion_matrix[3,2] = np.sum((is_true_4_click==True)&((is_predicted_4_click==False)&(is_predicted_4_left==False)&(is_predicted_4_right==False)))
+# True Rest
+confusion_matrix[0,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &(is_predicted_4_left==True)) # There should have been a true_rest array
+confusion_matrix[1,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &(is_predicted_4_right==True))
+confusion_matrix[2,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &(is_predicted_4_click==True))
+confusion_matrix[3,3] = np.sum(((is_true_4_right==False)&(is_true_4_left==False)) &((is_predicted_4_click==False)&(is_predicted_4_left==False)&(is_predicted_4_right==False)))
+
